@@ -1,4 +1,4 @@
-function getItemIdByNameInFolder(fileName, folderId, mimeType,isFolder) {
+function findItemIdByNameInFolder(fileName, folderId, mimeType, isFolder) {
     
     if(!folderId) {
         Logger.log("folderId:",folderId)
@@ -6,10 +6,10 @@ function getItemIdByNameInFolder(fileName, folderId, mimeType,isFolder) {
     }
     
     var folder = DriveApp.getFolderById(folderId);
-    return searchInFolderAndSubFolders(fileName, folder, mimeType,isFolder);
+    return findItemIdInFolderTree(fileName, folder, mimeType, isFolder);
 }
 
-function searchInFolderAndSubFolders(name, folder, mimeType, isFolder) {
+function findItemIdInFolderTree(name, folder, mimeType, isFolder) {
     var searchQuery = 'title="' + name + '"';
     if (mimeType) {
         searchQuery += ' and mimeType="' + mimeType + '"';
@@ -30,7 +30,7 @@ function searchInFolderAndSubFolders(name, folder, mimeType, isFolder) {
     var subFolders = folder.getFolders();
     while (subFolders.hasNext()) {
         var subFolder = subFolders.next();
-        var itemId = searchInFolderAndSubFolders(name, subFolder, mimeType, isFolder);
+        var itemId = findItemIdInFolderTree(name, subFolder, mimeType, isFolder);
         if (itemId) {
             return itemId;
         }

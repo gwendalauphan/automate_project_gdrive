@@ -1,5 +1,5 @@
 function listAllItemTitles() {
-  var ConfigfileId = getItemIdByNameInFolder(PROJECT_GOOGLE_FORM_NAME, PROJECT_FOLDER_ID, MimeType.GOOGLE_FORMS, false);
+  var ConfigfileId = findItemIdByNameInFolder(PROJECT_GOOGLE_FORM_NAME, PROJECT_FOLDER_ID, MimeType.GOOGLE_FORMS, false);
 
   var form = FormApp.openById(ConfigfileId);       // Obtient le formulaire actif
   var items = form.getItems();        // Obtient tous les éléments du formulaire
@@ -95,12 +95,12 @@ function ingestConfiguration(sourceRowNum, configName) {
 
 
   checkboxRange.insertCheckboxes();
-  createDataValidation();
+  createConfigurationDropdownValidation();
   return "Configuration ingérée avec succès!";
 }
 
 
-function createDataValidation() {
+function createConfigurationDropdownValidation() {
   var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = spreadsheet.getSheetByName(CONFIG_SHEET_NAME);
   var responsesSheet = spreadsheet.getSheetByName(RESPONSE_SHEET_NAME);
@@ -145,7 +145,7 @@ function onDataValidationSelection(e) {
 
   // Check if it's the first row and the edited cell value is TRUE (checkbox is checked)
   if(editedRow === 1 && editedCol > 1 && sheet.getRange(1, editedCol - 1).getValue() === "Supprimer" && value === true) {
-    deleteConfiguration(editedCol - 1); // Call the delete function with the column of the "Supprimer" text
+    deleteConfigurationColumns(editedCol - 1); // Call the delete function with the column of the "Supprimer" text
   }
 
   // Vérifiez si c'est bien la liste déroulante
@@ -158,11 +158,11 @@ function onDataValidationSelection(e) {
       range.clearContent();
 
       // Appeler la fonction d'ingestion
-      ingestConfiguration(rowIndex, "Config "+ getCurrentConfigCounter() + " : ligne " + String(rowIndex));
-      incrementConfigCounter();
+      ingestConfiguration(rowIndex, "Config "+ getConfigurationCounter() + " : ligne " + String(rowIndex));
+      incrementConfigurationCounter();
     }
   }
-  updateFormOptions();
+  syncConfigurationNamesToForm();
 
 }
 

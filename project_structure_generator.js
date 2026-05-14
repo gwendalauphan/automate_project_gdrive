@@ -35,9 +35,9 @@ function generateProjectStructure() {
   
   var Dossiers = dictAnswers["Dossiers"];        // Dossiers à créer
   var ListeDossiers = Dossiers.split(",");
-  var ListeDossiersName = extractElementsFolders(ListeDossiers);
+  var ListeDossiersName = parseFolderNames(ListeDossiers);
 
-  var CheminCreation = transformPathString(dictAnswers["Chemin"]);   // Lieux de création du projet
+  var CheminCreation = extractPathFromLabel(dictAnswers["Chemin"]);   // Lieux de création du projet
 
   var Format = dictAnswers["Format"];     // Format du fichier de fiche de renseignement
   var ListeFormat = Format.split(",");
@@ -76,7 +76,7 @@ function generateProjectStructure() {
   var aideFolder = resourcesFolder.createFolder("Aide");
   
   // 4. Copie du fichier "Aide Fiche de renseignement" dans le dossier "Aide"
-  var aideFicheId = getItemIdByNameInFolder("Aide " + TEMPLATE_FICHE_RENSEIGNEMENT_NAME, TEMPLATE_PROJECT_FOLDER_ID, null, false);
+  var aideFicheId = findItemIdByNameInFolder("Aide " + TEMPLATE_FICHE_RENSEIGNEMENT_NAME, TEMPLATE_PROJECT_FOLDER_ID, null, false);
   var aideFicheFile = DriveApp.getFileById(aideFicheId);
   var copyAideFicheFile =aideFicheFile.makeCopy("Aide " + TEMPLATE_FICHE_RENSEIGNEMENT_NAME,aideFolder);
   
@@ -87,8 +87,8 @@ function generateProjectStructure() {
   // 6. Copie du fichier "Fiche de renseignement" dans le dossier le dossier "Ressources" et renommage en "Fiche de renseignement"
   // Application de 6. aux formats [docs, sheets, slides]
 
-  var ficheRenseignementIdSheet = getItemIdByNameInFolder(TEMPLATE_FICHE_RENSEIGNEMENT_NAME, TEMPLATE_PROJECT_FOLDER_ID, MimeType.GOOGLE_SHEETS, false);
-  var ficheRenseignementIdSheetCopy = copyFilebyId(ficheRenseignementIdSheet,TEMPLATE_FICHE_RENSEIGNEMENT_NAME, resourcesFolder);
+  var ficheRenseignementIdSheet = findItemIdByNameInFolder(TEMPLATE_FICHE_RENSEIGNEMENT_NAME, TEMPLATE_PROJECT_FOLDER_ID, MimeType.GOOGLE_SHEETS, false);
+  var ficheRenseignementIdSheetCopy = copyFileById(ficheRenseignementIdSheet, TEMPLATE_FICHE_RENSEIGNEMENT_NAME, resourcesFolder);
 
   // Source range
   var sourceRange = sheetValidation.getRange("A1:L22");
@@ -138,21 +138,21 @@ function generateProjectStructure() {
     createShortcut(ficheRenseignementIdSheetCopy, rootFolder);
   }
 
-  var ficheRenseignementIdDocx = getItemIdByNameInFolder(TEMPLATE_FICHE_RENSEIGNEMENT_NAME, TEMPLATE_PROJECT_FOLDER_ID, MimeType.GOOGLE_DOCS, false);
-  var ficheRenseignementIdDocxCopy = copyFilebyId(ficheRenseignementIdDocx,TEMPLATE_FICHE_RENSEIGNEMENT_NAME, resourcesFolder);
+  var ficheRenseignementIdDocx = findItemIdByNameInFolder(TEMPLATE_FICHE_RENSEIGNEMENT_NAME, TEMPLATE_PROJECT_FOLDER_ID, MimeType.GOOGLE_DOCS, false);
+  var ficheRenseignementIdDocxCopy = copyFileById(ficheRenseignementIdDocx, TEMPLATE_FICHE_RENSEIGNEMENT_NAME, resourcesFolder);
   Logger.log("Id fiche:" + ficheRenseignementIdDocxCopy.getId());
   if (ListeFormat.includes("docx")) {
     createShortcut(ficheRenseignementIdDocxCopy, rootFolder);
   }
 
-  var ficheRenseignementIdSlides = getItemIdByNameInFolder(TEMPLATE_FICHE_RENSEIGNEMENT_NAME, TEMPLATE_PROJECT_FOLDER_ID, MimeType.GOOGLE_SLIDES, false);
-  var ficheRenseignementIdSlidesCopy = copyFilebyId(ficheRenseignementIdSlides,TEMPLATE_FICHE_RENSEIGNEMENT_NAME, resourcesFolder);
+  var ficheRenseignementIdSlides = findItemIdByNameInFolder(TEMPLATE_FICHE_RENSEIGNEMENT_NAME, TEMPLATE_PROJECT_FOLDER_ID, MimeType.GOOGLE_SLIDES, false);
+  var ficheRenseignementIdSlidesCopy = copyFileById(ficheRenseignementIdSlides, TEMPLATE_FICHE_RENSEIGNEMENT_NAME, resourcesFolder);
   if (ListeFormat.includes("slides")) {
     createShortcut(ficheRenseignementIdSlidesCopy, rootFolder);
   }
   
   // 7. Remplissage de la fiche de renseignement docx
-  remplirVariablesDocx(dictAnswers,ficheRenseignementIdDocxCopy.getId())
+  fillDocumentTemplateVariables(dictAnswers, ficheRenseignementIdDocxCopy.getId())
   
 
   // 8. Création des dossiers supplémentaires enregistrés dans "ListeFormat"
@@ -168,14 +168,14 @@ function generateProjectStructure() {
       var dossierFolder = rootFolder.createFolder(NomdeDossier);
 
       // 9. Répéter étape 4
-      var aideDossierId = getItemIdByNameInFolder("Aide " + NomdeDossier, TEMPLATE_PROJECT_FOLDER_ID, null, false);
+      var aideDossierId = findItemIdByNameInFolder("Aide " + NomdeDossier, TEMPLATE_PROJECT_FOLDER_ID, null, false);
       var aideDossierFile = DriveApp.getFileById(aideDossierId);
       var copyAideDossierFile = aideDossierFile.makeCopy("Aide " + NomdeDossier,aideFolder);
       
       createShortcut(copyAideDossierFile, dossierFolder);
 
       if (NomdeDossier === "Liens Utiles"){
-        var LiensUtilesId = getItemIdByNameInFolder("Liens Utiles",TEMPLATE_PROJECT_FOLDER_ID, MimeType.GOOGLE_SHEETS, false);
+        var LiensUtilesId = findItemIdByNameInFolder("Liens Utiles",TEMPLATE_PROJECT_FOLDER_ID, MimeType.GOOGLE_SHEETS, false);
         var LiensUtilesFile = DriveApp.getFileById(LiensUtilesId);
         var copyLiensUtiles = LiensUtilesFile.makeCopy("Liens Utiles",dossierFolder);
         createShortcut(copyLiensUtiles, rootFolder);

@@ -1,9 +1,9 @@
-function initializeCounter() {
+function resetConfigurationCounter() {
   var scriptProperties = PropertiesService.getScriptProperties();
   scriptProperties.setProperty('configCounter', '0');
 }
 
-function incrementConfigCounter() {
+function incrementConfigurationCounter() {
   var scriptProperties = PropertiesService.getScriptProperties();
   var currentCount = Number(scriptProperties.getProperty('configCounter'));
   currentCount++;
@@ -11,7 +11,7 @@ function incrementConfigCounter() {
   return currentCount;
 }
 
-function getCurrentConfigCounter() {
+function getConfigurationCounter() {
   var scriptProperties = PropertiesService.getScriptProperties();
   return Number(scriptProperties.getProperty('configCounter'));
 }

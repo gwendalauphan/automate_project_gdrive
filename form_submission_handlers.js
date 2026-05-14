@@ -1,17 +1,17 @@
-function reorderArray(tableau1, tableau2) {
+function filterValuesPresentInArray(sourceValues, filterValues) {
     var output = [];
-    for (var i = 0; i < tableau1.length; i++) {
-        if (tableau2.indexOf(tableau1[i]) !== -1) {
-            output.push(tableau1[i]);
+  for (var i = 0; i < sourceValues.length; i++) {
+    if (filterValues.indexOf(sourceValues[i]) !== -1) {
+      output.push(sourceValues[i]);
         }
     }
     return output;
 }
 
-function arrayToDictionary(array) {
-    var dict = {};
-    for (var i = 0; i < array.length; i++) {
-        dict[array[i]] = i;
+function mapArrayValuesToIndexes(values) {
+  var dict = {};
+  for (var i = 0; i < values.length; i++) {
+    dict[values[i]] = i;
     }
     return dict;
 }
@@ -40,8 +40,8 @@ function onFormSubmit() {
 
   // Supposons que vous ayez déjà ces lignes en haut de votre fonction :
   var dictItems_init = listAllItemTitles();
-  var dictitemsbis = reorderArray(dictItems_init, headers[0]);
-  dictItems = arrayToDictionary(dictitemsbis);
+  var dictitemsbis = filterValuesPresentInArray(dictItems_init, headers[0]);
+  dictItems = mapArrayValuesToIndexes(dictitemsbis);
   Logger.log(dictitemsbis);
   // Logger.log(dictItems)
   var headersToIndex = [];
@@ -60,11 +60,11 @@ function onFormSubmit() {
   var questionDossier = "Coche les dossiers que tu souhaites avoir dans ton projet :";
   var questionFormat = "Quel format de fichier souhaites tu avoir pour la fiche de renseignement ?";
 
-  var headers2 = duplicateElement(headers[0],questionDossier,3);
-  var headers2 = duplicateElement(headers2,questionFormat,2);
+  var headers2 = duplicateArrayElement(headers[0], questionDossier, 3);
+  var headers2 = duplicateArrayElement(headers2, questionFormat, 2);
 
-  var headersToIndex2 = duplicateSubArray(headersToIndex,[dictItems[questionDossier]],3);
-  var headersToIndex2 = duplicateSubArray(headersToIndex,[dictItems[questionFormat]],2);
+  var headersToIndex2 = duplicateArrayEntry(headersToIndex, [dictItems[questionDossier]], 3);
+  var headersToIndex2 = duplicateArrayEntry(headersToIndex, [dictItems[questionFormat]], 2);
 
   var targetSheetName2 = CONFIG_SHEET_NAME;
   var targetSheet2 = targetSpreadsheet.getSheetByName(targetSheetName2); // Obtient la feuille par son nom
@@ -88,6 +88,6 @@ function onFormConfigSubmit() {
   var headers = responseSheet.getRange(1, 1, 1, responseSheet.getLastColumn()).getValues();
   var lastRow = responseSheet.getLastRow();
   var lastRowValues = responseSheet.getRange(lastRow, 1, 1, responseSheet.getLastColumn()).getValues();
-  generatePrefilledUrl(lastRowValues[0][1]);
+  buildPrefilledFormUrl(lastRowValues[0][1]);
 
 }

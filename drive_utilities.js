@@ -27,12 +27,12 @@ function createShortcut(targetFile, parentFolder) {
   Drive.Files.insert(shortcutResource);
 }
 
-function copyFilebyId(fileId, copyName, targetFolder) {
+function copyFileById(fileId, copyName, targetFolder) {
   var file = DriveApp.getFileById(fileId);
   return file.makeCopy(copyName, targetFolder);
 }
 
-function extractElementsFolders(elements) {
+function parseFolderNames(elements) {
   var extractedElements = [];
 
   for (var i = 0; i < elements.length; i++) {
@@ -47,7 +47,7 @@ function extractElementsFolders(elements) {
   return extractedElements;
 }
 
-function transformPathString(str) {
+function extractPathFromLabel(str) {
     // Utilisation d'une expression régulière pour trouver et extraire le contenu entre parenthèses
     var matched = str.match(/\((.*?)\)/);
     if (matched && matched[1]) {
@@ -129,7 +129,7 @@ function getFolderByPath(path) {
   return currentFolder.getId();
 }
 
-function duplicateElement(array, element, count) {
+function duplicateArrayElement(array, element, count) {
   var index = array.indexOf(element);
   if (index !== -1) {
     var toInsert = Array(count).fill(element);
@@ -138,7 +138,7 @@ function duplicateElement(array, element, count) {
   return array;
 }
 
-function duplicateSubArray(array, subElement, count) {
+function duplicateArrayEntry(array, subElement, count) {
   var index = -1;
   for (let i = 0; i < array.length; i++) {
     if (Array.isArray(array[i]) && array[i][0] === subElement[0]) {

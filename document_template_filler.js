@@ -1,4 +1,4 @@
-function remplirVariablesDocx(dictAnswers, targetDocId) {
+function fillDocumentTemplateVariables(dictAnswers, targetDocId) {
     // Ouvrez le fichier Docs et accédez à son contenu
     var targetDoc = DocumentApp.openById(targetDocId);
     var body = targetDoc.getBody();

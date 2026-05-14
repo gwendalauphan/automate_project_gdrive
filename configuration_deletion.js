@@ -1,4 +1,4 @@
-function deleteConfiguration(column) {
+function deleteConfigurationColumns(column) {
   var sheet = SpreadsheetApp.getActiveSpreadsheet().getActiveSheet();
   
   // Identifier la colonne du bouton cliqué

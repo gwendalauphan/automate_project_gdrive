@@ -1,4 +1,4 @@
-function generatePrefilledUrl(configName) {
+function buildPrefilledFormUrl(configName) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
 
   var donneesSheet = ss.getSheetByName(DATA_SHEET_NAME); 
@@ -24,7 +24,7 @@ function generatePrefilledUrl(configName) {
 
   var baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSd-mL0aeJtWNwQVb8t_B2ubKm1OsOawcAO3ikD9Y5pjvb7Pcw/viewform?usp=pp_url";
   
-  var dictFieldId = extractFieldIdsFromUrl();
+  var dictFieldId = extractFormFieldIdsFromUrl();
   Logger.log(dictFieldId);
   for (var index in dictFieldId) {
     var fieldId = dictFieldId[index];

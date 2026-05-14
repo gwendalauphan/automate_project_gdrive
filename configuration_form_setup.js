@@ -17,7 +17,7 @@ function getConfigurationNames() {
 }
 
 
-function updateFormOptions() {
+function syncConfigurationNamesToForm() {
   var form = FormApp.openById('1hUPGwJ9iLm6ptk-ujmLxhd6Durnps1simns2AIS0sQU');
 
   // Supposons que vous mettiez à jour la première question du formulaire

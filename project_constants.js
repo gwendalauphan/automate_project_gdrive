@@ -15,7 +15,7 @@ var PROJECT_GOOGLE_FORM_NAME = 'Questionnaire - Création de projet'
 //--------Variables du template---------------------------------//
 
 var TEMPLATE_PROJECT_FOLDER_NAME = "template";
-var TEMPLATE_PROJECT_FOLDER_ID = getItemIdByNameInFolder("template", PROJECT_FOLDER_ID, null, true);
+var TEMPLATE_PROJECT_FOLDER_ID = findItemIdByNameInFolder("template", PROJECT_FOLDER_ID, null, true);
 
 var TEMPLATE_FICHE_RENSEIGNEMENT_NAME = "Fiche de Renseignement"
 

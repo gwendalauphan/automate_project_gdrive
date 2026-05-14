@@ -1,4 +1,4 @@
-function extractFieldIdsFromUrl() {
+function extractFormFieldIdsFromUrl() {
   // Ouvre le Google Sheet et sélectionne la feuille "Donnees"
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var dataSheet = ss.getSheetByName(DATA_SHEET_NAME);
