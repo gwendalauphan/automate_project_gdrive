@@ -1,93 +1,78 @@
 function filterValuesPresentInArray(sourceValues, filterValues) {
-    var output = [];
+  var output = [];
   for (var i = 0; i < sourceValues.length; i++) {
     if (filterValues.indexOf(sourceValues[i]) !== -1) {
       output.push(sourceValues[i]);
-        }
     }
-    return output;
+  }
+  return output;
 }
 
 function mapArrayValuesToIndexes(values) {
   var dict = {};
   for (var i = 0; i < values.length; i++) {
     dict[values[i]] = i;
-    }
-    return dict;
+  }
+  return dict;
 }
 
 function onFormSubmit() {
   // L'ID de ton Google Sheets où les réponses sont enregistrées
-  var responseSpreadsheetId = PROJECT_SPREAD_SHEET_ID;
-  var responseSpreadsheet = SpreadsheetApp.openById(responseSpreadsheetId);
-
-  var responseSheetName = RESPONSE_SHEET_NAME;
-  var responseSheet = responseSpreadsheet.getSheetByName(responseSheetName); // Obtient la feuille par son nom
-
+  var spreadsheet = SpreadsheetApp.openById(PROJECT_SPREAD_SHEET_ID);
+  var responseSheet = spreadsheet.getSheetByName(RESPONSE_SHEET_NAME); // Obtient la feuille par son nom
 
   // Obtient la première ligne (headers) et la dernière ligne avec des données (réponses)
-  var headers = responseSheet.getRange(1, 1, 1, responseSheet.getLastColumn()).getValues();
+  var headers = responseSheet.getRange(1, 1, 1, responseSheet.getLastColumn()).getValues()[0];
   var lastRow = responseSheet.getLastRow();
-  var lastRowValues = responseSheet.getRange(lastRow, 1, 1, responseSheet.getLastColumn()).getValues();
-
+  var lastRowValues = responseSheet.getRange(lastRow, 1, 1, responseSheet.getLastColumn()).getValues()[0];
 
   // L'ID de ton nouveau Google Sheets où tu veux copier les réponses
-  var targetSpreadsheetId = PROJECT_SPREAD_SHEET_ID;
-  var targetSpreadsheet = SpreadsheetApp.openById(targetSpreadsheetId);
-
-  var targetSheetName = LAST_RESPONSE_SHEET_NAME;
-  var targetSheet = targetSpreadsheet.getSheetByName(targetSheetName); // Obtient la feuille par son nom
+  var targetSheet = spreadsheet.getSheetByName(LAST_RESPONSE_SHEET_NAME); // Obtient la feuille par son nom
 
   // Supposons que vous ayez déjà ces lignes en haut de votre fonction :
-  var dictItems_init = listAllItemTitles();
-  var dictitemsbis = filterValuesPresentInArray(dictItems_init, headers[0]);
-  dictItems = mapArrayValuesToIndexes(dictitemsbis);
-  Logger.log(dictitemsbis);
-  // Logger.log(dictItems)
+  var formItemTitles = listAllItemTitles();
+  var orderedItemTitles = filterValuesPresentInArray(formItemTitles, headers);
+  var itemIndexesByTitle = mapArrayValuesToIndexes(orderedItemTitles);
+  Logger.log(orderedItemTitles);
+  // Logger.log(itemIndexesByTitle)
   var headersToIndex = [];
 
   // Convertir les headers en leurs index respectifs en utilisant le dictionnaire
-  for (var i = 0; i < headers[0].length; i++) {
-    var header = headers[0][i];
-    headersToIndex.push([dictItems[header]]);  // Utilisez dictItems pour obtenir l'index pour chaque intitulé
+  for (var i = 0; i < headers.length; i++) {
+    var header = headers[i];
+    headersToIndex.push([itemIndexesByTitle[header]]);  // Utilisez itemIndexesByTitle pour obtenir l'index pour chaque intitulé
   }
 
   // Ajoute les headers, les index et les réponses au Google Sheets cible
   targetSheet.getRange(3, 1, headersToIndex.length, 1).setValues(headersToIndex);
-  targetSheet.getRange(3, 2, headers[0].length, 1).setValues(convertRowToColumn(headers[0]));
-  targetSheet.getRange(3, 3, lastRowValues[0].length, 1).setValues(convertRowToColumn(lastRowValues[0]));
+  targetSheet.getRange(3, 2, headers.length, 1).setValues(convertRowToColumn(headers));
+  targetSheet.getRange(3, 3, lastRowValues.length, 1).setValues(convertRowToColumn(lastRowValues));
 
-  var questionDossier = "Coche les dossiers que tu souhaites avoir dans ton projet :";
-  var questionFormat = "Quel format de fichier souhaites tu avoir pour la fiche de renseignement ?";
+  var folderQuestion = "Coche les dossiers que tu souhaites avoir dans ton projet :";
+  var fileFormatQuestion = "Quel format de fichier souhaites tu avoir pour la fiche de renseignement ?";
 
-  var headers2 = duplicateArrayElement(headers[0], questionDossier, 3);
-  var headers2 = duplicateArrayElement(headers2, questionFormat, 2);
+  var duplicatedHeaders = duplicateArrayElement(headers, folderQuestion, 3);
+  duplicatedHeaders = duplicateArrayElement(duplicatedHeaders, fileFormatQuestion, 2);
 
-  var headersToIndex2 = duplicateArrayEntry(headersToIndex, [dictItems[questionDossier]], 3);
-  var headersToIndex2 = duplicateArrayEntry(headersToIndex, [dictItems[questionFormat]], 2);
+  var duplicatedHeaderIndexes = duplicateArrayEntry(headersToIndex, [itemIndexesByTitle[folderQuestion]], 3);
+  duplicatedHeaderIndexes = duplicateArrayEntry(duplicatedHeaderIndexes, [itemIndexesByTitle[fileFormatQuestion]], 2);
 
-  var targetSheetName2 = CONFIG_SHEET_NAME;
-  var targetSheet2 = targetSpreadsheet.getSheetByName(targetSheetName2); // Obtient la feuille par son nom
+  var targetConfigSheet = spreadsheet.getSheetByName(CONFIG_SHEET_NAME); // Obtient la feuille par son nom
 
-  targetSheet2.getRange(3, 1, headersToIndex2.length, 1).setValues(headersToIndex2);
-  targetSheet2.getRange(3, 2, headers2.length, 1).setValues(convertRowToColumn(headers2));
+  targetConfigSheet.getRange(3, 1, duplicatedHeaderIndexes.length, 1).setValues(duplicatedHeaderIndexes);
+  targetConfigSheet.getRange(3, 2, duplicatedHeaders.length, 1).setValues(convertRowToColumn(duplicatedHeaders));
 
   updateDataValidationForNewEntry();
 }
 
 function onFormConfigSubmit() {
   // L'ID de ton Google Sheets où les réponses sont enregistrées
-  var responseSpreadsheetId = PROJECT_SPREAD_SHEET_ID;
-  var responseSpreadsheet = SpreadsheetApp.openById(responseSpreadsheetId);
-
-  var responseSheetName = RESPONSE_CONFIG_SHEET_NAME;
-  var responseSheet = responseSpreadsheet.getSheetByName(responseSheetName); // Obtient la feuille par son nom
-
+  var responseSpreadsheet = SpreadsheetApp.openById(PROJECT_SPREAD_SHEET_ID);
+  var responseSheet = responseSpreadsheet.getSheetByName(RESPONSE_CONFIG_SHEET_NAME); // Obtient la feuille par son nom
 
   // Obtient la première ligne (headers) et la dernière ligne avec des données (réponses)
-  var headers = responseSheet.getRange(1, 1, 1, responseSheet.getLastColumn()).getValues();
   var lastRow = responseSheet.getLastRow();
-  var lastRowValues = responseSheet.getRange(lastRow, 1, 1, responseSheet.getLastColumn()).getValues();
-  buildPrefilledFormUrl(lastRowValues[0][1]);
+  var lastRowValues = responseSheet.getRange(lastRow, 1, 1, responseSheet.getLastColumn()).getValues()[0];
+  buildPrefilledFormUrl(lastRowValues[1]);
 
 }

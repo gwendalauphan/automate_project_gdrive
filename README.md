@@ -20,3 +20,11 @@ This google app script project used within the google sheets file project helps 
 
 
 ## How to develop into a google app script project ?
+1. Go into the documentation: https://developers.google.com/apps-script/guides/clasp
+2. Install clasp: npm install -g @google/clasp
+3. Login to your google account: clasp login
+4. Then you have multiple options to create a new project:
+   - Create a new project: clasp create --title "Project Name"
+   - Clone an existing project: clasp pull "Project ID"
+   - Update an existing project: clasp push
+   

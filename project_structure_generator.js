@@ -1,3 +1,13 @@
+function buildAnswersByVariable(variableRows, valueRows) {
+  var answersByVariable = {};
+
+  for (var i = 0; i < variableRows.length; i++) {
+    answersByVariable[variableRows[i][0]] = valueRows[i][0];
+  }
+
+  return answersByVariable;
+}
+
 function generateProjectStructure() {
   
   /*
@@ -5,25 +15,18 @@ function generateProjectStructure() {
   */
 
   // Ouvrez le fichier Sheets et obtenez les données
-  var SourceSpreadsheetId = PROJECT_SPREAD_SHEET_ID;
-  var SourceSpreadsheet = SpreadsheetApp.openById(SourceSpreadsheetId);
+  var sourceSpreadsheet = SpreadsheetApp.openById(PROJECT_SPREAD_SHEET_ID);
 
-  var SourceSheetName = LAST_RESPONSE_SHEET_NAME;
-  var sheet = SourceSpreadsheet.getSheetByName(SourceSheetName); // Obtient la feuille par son nom
+  var responseSheet = sourceSpreadsheet.getSheetByName(LAST_RESPONSE_SHEET_NAME); // Obtient la feuille par son nom
 
-  var ValidationSheetName = VALIDATION_SHEET_NAME;
-  var sheetValidation = SourceSpreadsheet.getSheetByName(ValidationSheetName); // Obtient la feuille par son nom
+  var validationSheet = sourceSpreadsheet.getSheetByName(VALIDATION_SHEET_NAME); // Obtient la feuille par son nom
 
   // Obtenir les données des variables et des valeurs
-  var dataVariables = sheet.getRange('D3:D29').getValues(); // Ceci obtient les variables
-  var dataValeurs = sheet.getRange('C3:C29').getValues(); // Ceci obtient les valeurs
-  Logger.log(dataVariables)
+  var answerVariables = responseSheet.getRange('D3:D29').getValues(); // Ceci obtient les variables
+  var answerValues = responseSheet.getRange('C3:C29').getValues(); // Ceci obtient les valeurs
+  Logger.log(answerVariables);
 
-  var dictAnswers = {};
-
-  for (var i = 0; i < dataVariables.length; i++) {
-    dictAnswers[dataVariables[i][0]] = dataValeurs[i][0];
-  }
+  var answersByVariable = buildAnswersByVariable(answerVariables, answerValues);
 
 
 
@@ -31,33 +34,33 @@ function generateProjectStructure() {
   |-- 2 ----- INITIALISATION DES VARIABLES DE LA CREATION DU PROJET ------
   */
 
-  var Nom_projet = dictAnswers["Nom_projet"];    // Nom de projet
+  var projectName = answersByVariable["Nom_projet"];    // Nom de projet
   
-  var Dossiers = dictAnswers["Dossiers"];        // Dossiers à créer
-  var ListeDossiers = Dossiers.split(",");
-  var ListeDossiersName = parseFolderNames(ListeDossiers);
+  var selectedFolders = answersByVariable["Dossiers"];        // Dossiers à créer
+  var selectedFolderList = selectedFolders.split(",");
+  var selectedFolderNames = parseFolderNames(selectedFolderList);
 
-  var CheminCreation = extractPathFromLabel(dictAnswers["Chemin"]);   // Lieux de création du projet
+  var creationPath = extractPathFromLabel(answersByVariable["Chemin"]);   // Lieux de création du projet
 
-  var Format = dictAnswers["Format"];     // Format du fichier de fiche de renseignement
-  var ListeFormat = Format.split(",");
+  var selectedFormats = answersByVariable["Format"];     // Format du fichier de fiche de renseignement
+  var selectedFormatList = selectedFormats.split(",");
 
-  dictAnswers["Chemin"] = CheminCreation;  // Modification des valeurs du dictionnaire
-  dictAnswers["Dossiers"] = ListeDossiers;
-  dictAnswers["Format"] = ListeFormat;
+  answersByVariable["Chemin"] = creationPath;  // Modification des valeurs du dictionnaire
+  answersByVariable["Dossiers"] = selectedFolderList;
+  answersByVariable["Format"] = selectedFormatList;
 
-  Logger.log("Nom du projet:" + Nom_projet);
-  Logger.log(CheminCreation);
+  Logger.log("Nom du projet:" + projectName);
+  Logger.log(creationPath);
 
   
   //------Configuration du chemin de création du projet--------//
-  var creationFolder = getFolderByPath(CheminCreation);
+  var creationFolderId = getFolderByPath(creationPath);
   
   // Vérification de l'ID
   try {
-      var creationFolderId = DriveApp.getFolderById(creationFolder); // Tente de récupérer le dossier avec l'ID
+    var creationFolder = DriveApp.getFolderById(creationFolderId); // Tente de récupérer le dossier avec l'ID
   } catch (e) {
-      throw new Error("Veuillez fournir un nom de chemin correct en partant de la racine (par exemple : 'Mon Drive'), ou renseignez le dossier de création par son ID directement.");
+    throw new Error("Veuillez fournir un nom de chemin correct en partant de la racine (par exemple : 'Mon Drive'), ou renseignez le dossier de création par son ID directement.");
   }
 
 
@@ -67,9 +70,9 @@ function generateProjectStructure() {
   */
 
   // 1. Création du dossier <NomProjet>
-  var rootFolder = creationFolderId.createFolder(Nom_projet);
+  var rootFolder = creationFolder.createFolder(projectName);
   
-  // 2. Création du dossier "Ressources" à l'intérieur de <Nom_Projet>
+  // 2. Création du dossier "Ressources" à l'intérieur de <NomProjet>
   var resourcesFolder = rootFolder.createFolder("Ressources");
   
   // 3. Création du dossier "Aide" à l'intérieur de "Ressources"
@@ -87,14 +90,14 @@ function generateProjectStructure() {
   // 6. Copie du fichier "Fiche de renseignement" dans le dossier le dossier "Ressources" et renommage en "Fiche de renseignement"
   // Application de 6. aux formats [docs, sheets, slides]
 
-  var ficheRenseignementIdSheet = findItemIdByNameInFolder(TEMPLATE_FICHE_RENSEIGNEMENT_NAME, TEMPLATE_PROJECT_FOLDER_ID, MimeType.GOOGLE_SHEETS, false);
-  var ficheRenseignementIdSheetCopy = copyFileById(ficheRenseignementIdSheet, TEMPLATE_FICHE_RENSEIGNEMENT_NAME, resourcesFolder);
+  var infoSheetTemplateId = findItemIdByNameInFolder(TEMPLATE_FICHE_RENSEIGNEMENT_NAME, TEMPLATE_PROJECT_FOLDER_ID, MimeType.GOOGLE_SHEETS, false);
+  var infoSheetCopy = copyFileById(infoSheetTemplateId, TEMPLATE_FICHE_RENSEIGNEMENT_NAME, resourcesFolder);
 
   // Source range
-  var sourceRange = sheetValidation.getRange("A1:L22");
+  var sourceRange = validationSheet.getRange("A1:L22");
 
   // Récupération des valeurs et de la mise en forme
-  var Renseignements = sourceRange.getValues();
+  var validationValues = sourceRange.getValues();
   var backgrounds = sourceRange.getBackgrounds();
   var fonts = sourceRange.getFontColors();
   var fontSizes = sourceRange.getFontSizes();
@@ -108,12 +111,12 @@ function generateProjectStructure() {
   var sourceMergedRanges = sourceRange.getMergedRanges();
 
   // Ouverture de la feuille cible
-  var targetSpreadsheet = SpreadsheetApp.openById(ficheRenseignementIdSheetCopy.getId());
+  var targetSpreadsheet = SpreadsheetApp.openById(infoSheetCopy.getId());
   var targetSheet = targetSpreadsheet.getActiveSheet();
   var targetRange = targetSheet.getRange("A1:L22");
 
   // Copie des valeurs et de la mise en forme dans la feuille cible
-  targetRange.setValues(Renseignements);
+  targetRange.setValues(validationValues);
   targetRange.setBackgrounds(backgrounds);
   targetRange.setFontColors(fonts);
   targetRange.setFontSizes(fontSizes);
@@ -125,75 +128,70 @@ function generateProjectStructure() {
 
   // Copie des fusions de cellules
   for (var i = 0; i < sourceMergedRanges.length; i++) {
-      var mergedRange = sourceMergedRanges[i];
-      var targetStartRow = mergedRange.getRow() - sourceRange.getRow() + targetRange.getRow();
-      var targetStartCol = mergedRange.getColumn() - sourceRange.getColumn() + targetRange.getColumn();
-      var targetEndRow = targetStartRow + mergedRange.getNumRows() - 1;
-      var targetEndCol = targetStartCol + mergedRange.getNumColumns() - 1;
-      targetSheet.getRange(targetStartRow, targetStartCol, mergedRange.getNumRows(), mergedRange.getNumColumns()).merge();
+    var mergedRange = sourceMergedRanges[i];
+    var targetStartRow = mergedRange.getRow() - sourceRange.getRow() + targetRange.getRow();
+    var targetStartCol = mergedRange.getColumn() - sourceRange.getColumn() + targetRange.getColumn();
+    targetSheet.getRange(targetStartRow, targetStartCol, mergedRange.getNumRows(), mergedRange.getNumColumns()).merge();
   }
 
 
-  if (ListeFormat.includes("excel")) {
-    createShortcut(ficheRenseignementIdSheetCopy, rootFolder);
+  if (selectedFormatList.includes("excel")) {
+    createShortcut(infoSheetCopy, rootFolder);
   }
 
-  var ficheRenseignementIdDocx = findItemIdByNameInFolder(TEMPLATE_FICHE_RENSEIGNEMENT_NAME, TEMPLATE_PROJECT_FOLDER_ID, MimeType.GOOGLE_DOCS, false);
-  var ficheRenseignementIdDocxCopy = copyFileById(ficheRenseignementIdDocx, TEMPLATE_FICHE_RENSEIGNEMENT_NAME, resourcesFolder);
-  Logger.log("Id fiche:" + ficheRenseignementIdDocxCopy.getId());
-  if (ListeFormat.includes("docx")) {
-    createShortcut(ficheRenseignementIdDocxCopy, rootFolder);
+  var infoDocTemplateId = findItemIdByNameInFolder(TEMPLATE_FICHE_RENSEIGNEMENT_NAME, TEMPLATE_PROJECT_FOLDER_ID, MimeType.GOOGLE_DOCS, false);
+  var infoDocCopy = copyFileById(infoDocTemplateId, TEMPLATE_FICHE_RENSEIGNEMENT_NAME, resourcesFolder);
+  Logger.log("Id fiche:" + infoDocCopy.getId());
+  if (selectedFormatList.includes("docx")) {
+    createShortcut(infoDocCopy, rootFolder);
   }
 
-  var ficheRenseignementIdSlides = findItemIdByNameInFolder(TEMPLATE_FICHE_RENSEIGNEMENT_NAME, TEMPLATE_PROJECT_FOLDER_ID, MimeType.GOOGLE_SLIDES, false);
-  var ficheRenseignementIdSlidesCopy = copyFileById(ficheRenseignementIdSlides, TEMPLATE_FICHE_RENSEIGNEMENT_NAME, resourcesFolder);
-  if (ListeFormat.includes("slides")) {
-    createShortcut(ficheRenseignementIdSlidesCopy, rootFolder);
+  var infoSlidesTemplateId = findItemIdByNameInFolder(TEMPLATE_FICHE_RENSEIGNEMENT_NAME, TEMPLATE_PROJECT_FOLDER_ID, MimeType.GOOGLE_SLIDES, false);
+  var infoSlidesCopy = copyFileById(infoSlidesTemplateId, TEMPLATE_FICHE_RENSEIGNEMENT_NAME, resourcesFolder);
+  if (selectedFormatList.includes("slides")) {
+    createShortcut(infoSlidesCopy, rootFolder);
   }
   
   // 7. Remplissage de la fiche de renseignement docx
-  fillDocumentTemplateVariables(dictAnswers, ficheRenseignementIdDocxCopy.getId())
+  fillDocumentTemplateVariables(answersByVariable, infoDocCopy.getId());
   
 
-  // 8. Création des dossiers supplémentaires enregistrés dans "ListeFormat"
-  if (ListeDossiersName.includes("Aucun")){
-    Logger.log("Aucun dossier créé")
-  }
-  else{
+  // 8. Création des dossiers supplémentaires enregistrés dans la réponse "Dossiers"
+  if (selectedFolderNames.includes("Aucun")) {
+    Logger.log("Aucun dossier créé");
+  } else {
     // 7. Pour chaque <NomdeDossier> dans <ListeDossier>:
-    for (var i = 0; i < ListeDossiersName.length; i++) {
-      var NomdeDossier = ListeDossiersName[i];
+    for (var j = 0; j < selectedFolderNames.length; j++) {
+      var folderName = selectedFolderNames[j];
       
       // 8. Répéter étape 5
-      var dossierFolder = rootFolder.createFolder(NomdeDossier);
+      var projectSubfolder = rootFolder.createFolder(folderName);
 
       // 9. Répéter étape 4
-      var aideDossierId = findItemIdByNameInFolder("Aide " + NomdeDossier, TEMPLATE_PROJECT_FOLDER_ID, null, false);
+      var aideDossierId = findItemIdByNameInFolder("Aide " + folderName, TEMPLATE_PROJECT_FOLDER_ID, null, false);
       var aideDossierFile = DriveApp.getFileById(aideDossierId);
-      var copyAideDossierFile = aideDossierFile.makeCopy("Aide " + NomdeDossier,aideFolder);
+      var copyAideDossierFile = aideDossierFile.makeCopy("Aide " + folderName, aideFolder);
       
-      createShortcut(copyAideDossierFile, dossierFolder);
+      createShortcut(copyAideDossierFile, projectSubfolder);
 
-      if (NomdeDossier === "Liens Utiles"){
-        var LiensUtilesId = findItemIdByNameInFolder("Liens Utiles",TEMPLATE_PROJECT_FOLDER_ID, MimeType.GOOGLE_SHEETS, false);
-        var LiensUtilesFile = DriveApp.getFileById(LiensUtilesId);
-        var copyLiensUtiles = LiensUtilesFile.makeCopy("Liens Utiles",dossierFolder);
+      if (folderName === "Liens Utiles") {
+        var liensUtilesId = findItemIdByNameInFolder("Liens Utiles", TEMPLATE_PROJECT_FOLDER_ID, MimeType.GOOGLE_SHEETS, false);
+        var liensUtilesFile = DriveApp.getFileById(liensUtilesId);
+        var copyLiensUtiles = liensUtilesFile.makeCopy("Liens Utiles", projectSubfolder);
         createShortcut(copyLiensUtiles, rootFolder);
       }
-      
-      
     }
   }
 
 
   // 9. Ajout à Suivi de projet (si Enregistrement == oui)
-  if (dictAnswers["Enregistrement"] === "Oui"){
-    Logger.log("Ajout à suivi de projet")
+  if (answersByVariable["Enregistrement"] === "Oui") {
+    Logger.log("Ajout à suivi de projet");
   }
   
   /*
   // 9. Ajout de l'historique (si Historique == oui)
-  if (dictAnswers["Historique"] === "Oui"){
+  if (answersByVariable["Historique"] === "Oui"){
     Logger.log("Ajout de l'historique")
   }
   */

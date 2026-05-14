@@ -1,12 +1,12 @@
-function fillDocumentTemplateVariables(dictAnswers, targetDocId) {
+function fillDocumentTemplateVariables(answersByVariable, targetDocId) {
     // Ouvrez le fichier Docs et accédez à son contenu
     var targetDoc = DocumentApp.openById(targetDocId);
     var body = targetDoc.getBody();
 
-    // Parcourir les clés dans dictAnswers
-    for (var key in dictAnswers) {
+    // Parcourir les clés dans answersByVariable
+    for (var key in answersByVariable) {
         var variable = key;
-        var valeur = dictAnswers[key];
+        var valeur = answersByVariable[key];
 
         Logger.log('Variable: ' + variable);
         Logger.log('Valeur: ' + valeur);

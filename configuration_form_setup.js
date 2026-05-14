@@ -1,7 +1,7 @@
 
 function getConfigurationNames() {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
-  var dataSheet = ss.getSheetByName('Configurations');
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+  var dataSheet = spreadsheet.getSheetByName('Configurations');
   
   // Récupère la ligne contenant les noms des configurations
   var row = dataSheet.getRange(2, 4, 1, dataSheet.getLastColumn()).getValues()[0];

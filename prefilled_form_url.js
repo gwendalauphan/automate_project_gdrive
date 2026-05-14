@@ -1,59 +1,57 @@
 function buildPrefilledFormUrl(configName) {
-  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
 
-  var donneesSheet = ss.getSheetByName(DATA_SHEET_NAME); 
+  var dataOutputSheet = spreadsheet.getSheetByName(DATA_SHEET_NAME); 
   
   // Sélectionne la feuille contenant les ID de champ et les valeurs
-  var dataSheet = ss.getSheetByName(CONFIG_SHEET_NAME);
+  var configSheet = spreadsheet.getSheetByName(CONFIG_SHEET_NAME);
   
   // Recherche de la colonne correspondant au nom de configuration
-  var headers = dataSheet.getRange(2, 1, 1, dataSheet.getLastColumn()).getValues()[0];
-  var colIndex = headers.indexOf(configName);
-  if (colIndex === -1) {
+  var configNames = configSheet.getRange(2, 1, 1, configSheet.getLastColumn()).getValues()[0];
+  var configColumnIndex = configNames.indexOf(configName);
+  if (configColumnIndex === -1) {
     throw new Error("Nom de configuration non trouvé.");
   }
 
   // +1 pour obtenir la colonne des checkboxes (colonne à droite de la valeur trouvée)
-  var checkboxColIndex = colIndex + 1;
+  var checkboxColumnIndex = configColumnIndex + 1;
   
   // Récupération des données nécessaires
-  var dataRange = dataSheet.getRange(3, 1, dataSheet.getLastRow() - 2, dataSheet.getLastColumn());
-  var dataValues = dataRange.getValues();
+  var configRange = configSheet.getRange(3, 1, configSheet.getLastRow() - 2, configSheet.getLastColumn());
+  var configValues = configRange.getValues();
   
-  Logger.log(dataValues)
+  Logger.log(configValues);
 
   var baseUrl = "https://docs.google.com/forms/d/e/1FAIpQLSd-mL0aeJtWNwQVb8t_B2ubKm1OsOawcAO3ikD9Y5pjvb7Pcw/viewform?usp=pp_url";
   
-  var dictFieldId = extractFormFieldIdsFromUrl();
-  Logger.log(dictFieldId);
-  for (var index in dictFieldId) {
-    var fieldId = dictFieldId[index];
+  var fieldIdsByIndex = extractFormFieldIdsFromUrl();
+  Logger.log(fieldIdsByIndex);
+  for (var index in fieldIdsByIndex) {
+    var fieldId = fieldIdsByIndex[index];
     // Trouver la ligne correspondante dans la colonne A
-    var rowIndex = -1;
     var matchedRows = [];  // Tableau pour stocker les indices de lignes correspondantes
+    var targetIndex = parseInt(index, 10);
 
-    for (var i = 0; i < dataValues.length; i++) {
-      if (parseInt(dataValues[i][0]) === parseInt(index)) {
+    for (var i = 0; i < configValues.length; i++) {
+      if (parseInt(configValues[i][0], 10) === targetIndex) {
         matchedRows.push(i);
         Logger.log(index + " " + fieldId + " " + i);
       }
     }
 
-    for (var i = 0; i < matchedRows.length; i++) {
-      var rowIndex = matchedRows[i];
-      var defaultValue = dataValues[rowIndex][colIndex];
-      var isCheckboxChecked = dataValues[rowIndex][checkboxColIndex] === true;
+    for (var j = 0; j < matchedRows.length; j++) {
+      var rowIndex = matchedRows[j];
+      var defaultValue = configValues[rowIndex][configColumnIndex];
+      var isCheckboxChecked = configValues[rowIndex][checkboxColumnIndex] === true;
       Logger.log(defaultValue + ":" + isCheckboxChecked);
       if (isCheckboxChecked) {
         baseUrl += "&entry." + fieldId + "=" + encodeURIComponent(defaultValue);
       }
     }
-
-
   }
   baseUrl = baseUrl.replace(/%20/g, "+");
-  Logger.log(baseUrl)
+  Logger.log(baseUrl);
   
-  var cell = donneesSheet.getRange("B7");
+  var cell = dataOutputSheet.getRange("B7");
   cell.setValue(baseUrl);
 }
